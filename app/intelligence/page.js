@@ -3,7 +3,13 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
+import {
+  collection,
+  query,
+  orderBy,
+  limit,
+  getDocs,
+} from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 
 import {
@@ -14,20 +20,18 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Area,
 } from "recharts";
+
+const WINDOW_SIZE = 12; // last 60 minutes (12 × 5 min)
 
 export default function IntelligencePage() {
   const router = useRouter();
 
   const [authLoading, setAuthLoading] = useState(true);
-  const [forecast, setForecast] = useState(null);
+  const [snapshots, setSnapshots] = useState([]);
   const [lastUpdated, setLastUpdated] = useState(null);
-  const [cursor, setCursor] = useState(12);
 
-  const WINDOW_SIZE = 12; // 1 hour window (12 × 5 min)
-
-  // 🔐 Auth guard
+  /* 🔐 Auth guard */
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => {
       if (!u) {
@@ -39,88 +43,81 @@ export default function IntelligencePage() {
     return () => unsub();
   }, [router]);
 
-  // 🔄 Fetch forecast
-  const fetchForecast = async () => {
-    const snap = await getDoc(doc(db, "forecast_results", "latest"));
-    if (snap.exists()) {
-      setForecast(snap.data());
-      setLastUpdated(new Date());
-    }
+  /* 🔄 Fetch intelligence snapshots */
+  const fetchIntelligence = async () => {
+    const q = query(
+      collection(db, "grid_intelligence"),
+      orderBy("timestamp", "desc"), // IMPORTANT
+      limit(WINDOW_SIZE)
+    );
+
+    const snap = await getDocs(q);
+    const data = snap.docs.map((d) => d.data()).reverse();
+
+    setSnapshots(data);
+    setLastUpdated(new Date());
   };
 
-  // Initial fetch
   useEffect(() => {
-    fetchForecast();
-  }, []);
-
-  // 🔁 Auto refresh data (every 10s – demo mode)
-  useEffect(() => {
-    const interval = setInterval(fetchForecast, 10000);
+    fetchIntelligence();
+    const interval = setInterval(fetchIntelligence, 10000); // poll every 10s
     return () => clearInterval(interval);
   }, []);
 
-  // ▶ Sliding window animation
-  useEffect(() => {
-    if (!forecast) return;
-
-    const slide = setInterval(() => {
-      setCursor((c) =>
-        c < forecast.series.length ? c + 1 : WINDOW_SIZE
-      );
-    }, 3000);
-
-    return () => clearInterval(slide);
-  }, [forecast]);
-
   if (authLoading) return <p>Checking authentication...</p>;
-  if (!forecast) return <p>Loading forecast data...</p>;
+  if (!snapshots.length) return <p>Loading grid intelligence...</p>;
 
-  const forecastSeries =
-    forecast.series?.slice(
-      Math.max(0, cursor - WINDOW_SIZE),
-      cursor
-    ) || [];
+  const latest = snapshots[snapshots.length - 1];
 
-  // ⚠ Dynamic risk computation
-  const computeRisk = (series) => {
-    if (series.length < 2) return "Low";
-
-    const diffs = series
-      .slice(1)
-      .map((p, i) => Math.abs(p.load - series[i].load));
-
-    const avgDiff =
-      diffs.reduce((a, b) => a + b, 0) / diffs.length;
-
-    if (avgDiff > 25) return "High";
-    if (avgDiff > 10) return "Medium";
-    return "Low";
-  };
-
-  const riskLevel = computeRisk(forecastSeries);
+  /* 🔍 LIVE VALUES */
+  const riskLevel = latest?.risk_level || "UNKNOWN";
+  const gridRiskIndex = latest?.grid_risk_index ?? 0;
+  const congestionProb = latest?.congestion_probability ?? 0;
+  const loadSheddingRisk = latest?.load_shedding_risk ?? 0;
+  const recommendation = latest?.recommendation || "—";
 
   const riskColor =
-    riskLevel === "High"
+    riskLevel === "HIGH"
       ? "bg-red-100 text-red-700"
-      : riskLevel === "Medium"
+      : riskLevel === "MEDIUM"
       ? "bg-yellow-100 text-yellow-700"
       : "bg-green-100 text-green-700";
+
+  /* 📈 SYSTEM RISK SERIES (TIME-BASED) */
+  const riskSeries = snapshots.map((s) => ({
+    time: new Date(s.timestamp).toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
+    risk: s.grid_risk_index ?? 0,
+  }));
+
+  /* 🌐 NODE-LEVEL RISK SERIES */
+  const nodeRiskSeries = snapshots.map((s) => ({
+    time: new Date(s.timestamp).toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
+    DVC: s.node_risk?.DVC ?? 0,
+    BSEB: s.node_risk?.BSEB ?? 0,
+    WBSEB: s.node_risk?.WBSEB ?? 0,
+    SIKKIM: s.node_risk?.SIKKIM ?? 0,
+  }));
 
   return (
     <div className="space-y-8">
 
-      {/* Header */}
+      {/* HEADER */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Grid Intelligence Dashboard</h1>
-
           {lastUpdated && (
             <p className="text-xs text-gray-500 flex items-center gap-2">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
               </span>
-              Live • Last updated: {lastUpdated.toLocaleTimeString()}
+              Live • Polled {lastUpdated.toLocaleTimeString()}
             </p>
           )}
         </div>
@@ -133,109 +130,103 @@ export default function IntelligencePage() {
         </button>
       </div>
 
-      <p className="text-sm text-gray-600">
-        5-minute ahead probabilistic load forecasting derived from real DVC data.
-      </p>
-
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      {/* STATUS CARDS */}
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <div className="bg-white p-4 rounded shadow">
           <p className="text-sm text-gray-500">Region</p>
-          <p className="text-lg font-semibold">{forecast.region}</p>
+          <p className="font-semibold">DVC (Eastern Grid)</p>
         </div>
 
         <div className="bg-white p-4 rounded shadow">
           <p className="text-sm text-gray-500">Risk Level</p>
-          <span
-            className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${riskColor}`}
-          >
+          <span className={`px-3 py-1 rounded-full text-sm font-medium ${riskColor}`}>
             {riskLevel}
           </span>
         </div>
 
         <div className="bg-white p-4 rounded shadow">
-          <p className="text-sm text-gray-500">Congestion Alert</p>
-          <p className="text-lg font-semibold">
-            {riskLevel === "High" ? "⚠️ Possible" : "No"}
-          </p>
+          <p className="text-sm text-gray-500">Grid Risk Index</p>
+          <p className="font-semibold">{gridRiskIndex.toFixed(2)}</p>
         </div>
 
         <div className="bg-white p-4 rounded shadow">
-          <p className="text-sm text-gray-500">Forecast Horizon</p>
-          <p className="text-xl font-semibold">
-            {forecastSeries.length * 5} min
-          </p>
+          <p className="text-sm text-gray-500">Congestion Probability</p>
+          <p className="font-semibold">{(congestionProb * 100).toFixed(1)}%</p>
+        </div>
+
+        <div className="bg-white p-4 rounded shadow">
+          <p className="text-sm text-gray-500">Load Shedding Risk</p>
+          <p className="font-semibold">{(loadSheddingRisk * 100).toFixed(1)}%</p>
         </div>
       </div>
 
-      {/* Chart */}
+      {/* SYSTEM-LEVEL RISK GRAPH */}
       <div className="bg-white p-6 rounded-lg shadow">
-        <div className="flex justify-between items-center">
-            <div>
-                <h2 className="text-lg font-semibold mb-1">
-                Probabilistic Load Forecast (MW)
-                </h2>
+        <h2 className="text-lg font-semibold mb-2">
+          System-Level Grid Risk (5-Minute Resolution)
+        </h2>
 
-                <p className="text-xs text-gray-500 mb-3">
-                Black line = predicted load • Shaded area = uncertainty band
-                </p>
-            </div>
-            <div className="text-black">
-                live
-            </div>
-        </div>
-
-        <ResponsiveContainer width="100%" height={320}>
-          <LineChart data={forecastSeries}>
+        <ResponsiveContainer width="100%" height={300}>
+          <LineChart data={riskSeries}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="time" />
-            <YAxis />
+            <YAxis domain={["auto", "auto"]} />
             <Tooltip />
-
-            <Area
-              type="monotone"
-              dataKey="high"
-              stroke="none"
-              fill="#fde68a"
-              fillOpacity={0.6}
-            />
-            <Area
-              type="monotone"
-              dataKey="low"
-              stroke="none"
-              fill="#ffffff"
-              fillOpacity={1}
-            />
 
             <Line
               type="monotone"
-              dataKey="load"
+              dataKey="risk"
               stroke="#000000"
               strokeWidth={2}
               dot={(props) =>
-                props.index === forecastSeries.length - 1 ? (
-                  <circle
-                    cx={props.cx}
-                    cy={props.cy}
-                    r={4}
-                    fill="red"
-                  />
+                props.index === riskSeries.length - 1 ? (
+                  <g>
+                    <circle cx={props.cx} cy={props.cy} r={7} fill="red" opacity={0.25} />
+                    <circle cx={props.cx} cy={props.cy} r={3} fill="red" />
+                  </g>
                 ) : null
               }
             />
           </LineChart>
         </ResponsiveContainer>
+
+        <p className="text-xs text-gray-500 mt-2">
+          Red dot indicates latest grid intelligence snapshot
+        </p>
       </div>
 
-      {/* Explanation */}
-      <div className="bg-white p-6 rounded-lg shadow space-y-2">
-        <h2 className="text-lg font-semibold">Why this matters</h2>
-        <ul className="list-disc pl-5 text-sm text-gray-600 space-y-1">
-          <li>Simulates live ingestion of 5-minute grid data</li>
-          <li>Shows uncertainty instead of single-point forecasts</li>
-          <li>Risk reacts dynamically to volatility</li>
-          <li>Aligned with real ADMS decision workflows</li>
-        </ul>
+      {/* NODE-LEVEL RISK GRAPH */}
+      <div className="bg-white p-6 rounded-lg shadow">
+        <h2 className="text-lg font-semibold mb-2">
+          Node-Level Risk Breakdown
+        </h2>
+
+        <ResponsiveContainer width="100%" height={300}>
+          <LineChart data={nodeRiskSeries}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="time" />
+            <YAxis domain={["auto", "auto"]} />
+            <Tooltip />
+
+            <Line dataKey="DVC" stroke="#000000" strokeWidth={2} />
+            <Line dataKey="BSEB" stroke="#2563eb" />
+            <Line dataKey="WBSEB" stroke="#dc2626" />
+            {/* <Line dataKey="SIKKIM" stroke="#16a34a" /> */}
+          </LineChart>
+        </ResponsiveContainer>
+
+        <p className="text-xs text-gray-500 mt-2">
+          Regional contribution to overall grid stress
+        </p>
+      </div>
+
+      {/* RECOMMENDATION */}
+      <div className="bg-white p-6 rounded-lg shadow">
+        <h2 className="text-lg font-semibold">System Recommendation</h2>
+        <p className="text-sm text-gray-700 mt-1">{recommendation}</p>
+        <p className="text-xs text-gray-500 mt-2">
+          Advisory only — no automated dispatch actions.
+        </p>
       </div>
     </div>
   );

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import * as XLSX from "xlsx";
 import { collection, doc, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
@@ -11,88 +10,97 @@ export default function PopulateDBPage() {
 
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
+
     if (!file || !collectionName) {
-      alert("Provide collection name and Excel file");
+      alert("Provide collection name and JSON file");
+      return;
+    }
+
+    if (!file.name.endsWith(".json")) {
+      alert("Please upload a .json file");
       return;
     }
 
     const reader = new FileReader();
 
     reader.onload = async (evt) => {
-      const data = new Uint8Array(evt.target.result);
-      const workbook = XLSX.read(data, { type: "array" });
-      const sheet = workbook.Sheets[workbook.SheetNames[0]];
-      const rows = XLSX.utils.sheet_to_json(sheet);
+      try {
+        const jsonData = JSON.parse(evt.target.result);
 
-      setStatus(`Processing ${rows.length} rows...`);
+        if (!Array.isArray(jsonData)) {
+          alert("JSON must be an array of snapshots");
+          return;
+        }
 
-      for (const row of rows) {
-        const { id, ...fields } = row;
+        // ✅ LIMIT TO FIRST 250 SNAPSHOTS
+        const limitedData = jsonData.slice(0, 250);
 
-        if (id) {
-          // 🔁 UPSERT with known ID
+        setStatus(`Uploading ${limitedData.length} snapshots...`);
+
+        for (let i = 0; i < limitedData.length; i++) {
+          const snapshot = limitedData[i];
+
+          // Use timestamp if available, else fallback ID
+          const docId =
+            snapshot.timestamp ||
+            snapshot.meta?.timestamp ||
+            `snap_${String(i).padStart(4, "0")}`;
+
           await setDoc(
-            doc(db, collectionName, String(id)),
+            doc(db, collectionName, docId),
             {
-              ...fields,
-              updatedAt: new Date(),
-            },
-            { merge: true } // 👈 KEY LINE (append / update only)
-          );
-        } else {
-          // ➕ Append new doc (auto ID)
-          await setDoc(
-            doc(collection(db, collectionName)),
-            {
-              ...fields,
+              ...snapshot,
               createdAt: new Date(),
             },
             { merge: true }
           );
         }
-      }
 
-      setStatus("Upload complete ✅");
+        setStatus("Upload complete ✅");
+      } catch (err) {
+        console.error(err);
+        alert("Invalid JSON file");
+      }
     };
 
-    reader.readAsArrayBuffer(file);
+    reader.readAsText(file);
   };
 
   return (
     <div className="max-w-xl mx-auto bg-white p-6 rounded-lg shadow space-y-6">
-      <h1 className="text-2xl font-bold">Populate Firestore (Dev Tool)</h1>
+      <h1 className="text-2xl font-bold">
+        Populate Grid Intelligence (Dev Tool)
+      </h1>
 
       <div className="space-y-2">
         <label className="text-sm font-medium">Collection Name</label>
         <input
           value={collectionName}
           onChange={(e) => setCollectionName(e.target.value)}
-          placeholder="excess_energy / contracts / users"
+          placeholder="grid_intelligence"
           className="w-full border p-2 rounded"
         />
       </div>
 
       <div className="space-y-2">
-        <label className="text-sm font-medium">Excel File (.xlsx)</label>
+        <label className="text-sm font-medium">JSON File</label>
         <input
           type="file"
-          accept=".xlsx,.xls"
+          accept=".json"
           onChange={handleFileUpload}
           className="w-full"
         />
       </div>
 
       {status && (
-        <p className="text-sm text-gray-600">
-          {status}
-        </p>
+        <p className="text-sm text-gray-600">{status}</p>
       )}
 
       <p className="text-xs text-gray-500">
-        • Uses Excel headers as Firestore fields  
-        • If document exists → updates fields  
-        • If not → creates new  
-        • Never deletes data
+        • Uploads first 250 snapshots only  
+        • Stores JSON as-is  
+        • No deletions  
+        • Safe for prototype
       </p>
     </div>
   );
