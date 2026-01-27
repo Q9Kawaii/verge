@@ -35,13 +35,23 @@ export default function MSMEDashboard() {
     <div className="space-y-6">
         <div className="flex items-center justify-between">
   <h1 className="text-2xl font-bold">MSME Dashboard</h1>
+  
+    <div className="flex gap-4">  
+        <Link
+            href="/msme/contracts"
+            className="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800"
+            >
+            My Contracts
+        </Link>
 
-  <Link
-    href="/msme/marketplace"
-    className="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800"
-  >
-    Browse Marketplace
-  </Link>
+
+        <Link
+            href="/msme/marketplace"
+            className="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800"
+        >
+            Browse Marketplace
+        </Link>
+    </div>
 </div>
 
 

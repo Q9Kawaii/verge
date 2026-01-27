@@ -1,85 +1,157 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth, db } from "@/lib/firebase";
+import { doc, getDoc } from "firebase/firestore";
+import Link from "next/link";
 
 export default function GeneratorDashboard() {
   const router = useRouter();
-  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [forecast, setForecast] = useState(null);
 
-  // Basic auth check
+  // 🔐 Auth guard
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => {
       if (!u) {
-  setLoading(false);
-  router.replace("/login");
-  return;
-}
- else {
-        setUser(u);
-        setLoading(false);
+        router.replace("/login");
+        return;
       }
+      setLoading(false);
     });
-
     return () => unsub();
   }, [router]);
 
-  if (loading) return <p>Loading...</p>;
+  // 📡 Fetch grid intelligence snapshot
+  useEffect(() => {
+    const fetchForecast = async () => {
+      const snap = await getDoc(doc(db, "forecast_results", "latest"));
+      if (snap.exists()) {
+        setForecast(snap.data());
+      }
+    };
+    fetchForecast();
+  }, []);
+
+  if (loading) return <p>Loading generator dashboard...</p>;
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Generator Dashboard</h1>
+    <div className="space-y-8">
+
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Generator Dashboard</h1>
+
+        <Link
+          href="/intelligence"
+          className="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800"
+        >
+          View Grid Intelligence
+        </Link>
+      </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-white p-4 rounded shadow">
-          <p className="text-sm text-gray-500">Total Generation</p>
+          <p className="text-sm text-gray-500">Total Green Generation</p>
           <p className="text-xl font-semibold">12,500 MWh</p>
         </div>
 
         <div className="bg-white p-4 rounded shadow">
-          <p className="text-sm text-gray-500">RECs Issued</p>
-          <p className="text-xl font-semibold">12,500</p>
+          <p className="text-sm text-gray-500">Sold to Anchors</p>
+          <p className="text-xl font-semibold">9,000 MWh</p>
         </div>
 
         <div className="bg-white p-4 rounded shadow">
-          <p className="text-sm text-gray-500">Active Offers</p>
-          <p className="text-xl font-semibold">3</p>
+          <p className="text-sm text-gray-500">Available RECs</p>
+          <p className="text-xl font-semibold">3,500</p>
+        </div>
+
+        <div className="bg-white p-4 rounded shadow">
+          <p className="text-sm text-gray-500">Plant Status</p>
+          <p className="text-xl font-semibold text-green-600">Operational</p>
         </div>
       </div>
 
-      {/* Projects Section */}
-      <div className="bg-white p-6 rounded shadow">
-        <h2 className="text-lg font-semibold mb-4">Projects</h2>
+      {/* Anchor Contracts */}
+      <div className="bg-white p-6 rounded-lg shadow">
+        <h2 className="text-lg font-semibold mb-4">Active Anchor Contracts</h2>
 
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="border-b">
-              <th className="py-2">Project</th>
-              <th>Technology</th>
-              <th>Capacity</th>
-              <th>Status</th>
+              <th className="py-2">Anchor Buyer</th>
+              <th>Energy (MWh)</th>
+              <th>Duration</th>
+              <th>REC Issued</th>
             </tr>
           </thead>
           <tbody>
             <tr className="border-b">
-              <td className="py-2">Solar Park A</td>
-              <td>Solar</td>
-              <td>50 MW</td>
-              <td className="text-green-600">Active</td>
+              <td className="py-2">ABC Cement Ltd</td>
+              <td>3,000</td>
+              <td>10 Years</td>
+              <td className="text-green-600 font-medium">Yes</td>
             </tr>
-
-            <tr>
-              <td className="py-2">Wind Farm B</td>
-              <td>Wind</td>
-              <td>30 MW</td>
-              <td className="text-green-600">Active</td>
+            <tr className="border-b">
+              <td className="py-2">XYZ Steel Corp</td>
+              <td>6,000</td>
+              <td>15 Years</td>
+              <td className="text-green-600 font-medium">Yes</td>
             </tr>
           </tbody>
         </table>
+      </div>
+
+      {/* Grid Intelligence Snapshot */}
+      <div className="bg-white p-6 rounded-lg shadow space-y-3">
+        <h2 className="text-lg font-semibold">
+          Grid Intelligence Snapshot
+        </h2>
+
+        {forecast ? (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <p className="text-sm text-gray-500">Region</p>
+              <p className="font-medium">{forecast.region}</p>
+            </div>
+
+            <div>
+              <p className="text-sm text-gray-500">Risk Level</p>
+              <p className="font-medium">{forecast.riskLevel}</p>
+            </div>
+
+            <div>
+              <p className="text-sm text-gray-500">Congestion Alert</p>
+              <p className="font-medium">
+                {forecast.congestionAlert ? "⚠️ Possible" : "No"}
+              </p>
+            </div>
+          </div>
+        ) : (
+          <p className="text-sm text-gray-500">
+            Forecast data unavailable
+          </p>
+        )}
+      </div>
+
+      {/* Footer Nav */}
+      <div className="flex gap-3">
+        <Link
+          href="/anchor"
+          className="px-4 py-2 border rounded-md hover:bg-gray-100"
+        >
+          Anchor View
+        </Link>
+
+        <Link
+          href="/msme"
+          className="px-4 py-2 border rounded-md hover:bg-gray-100"
+        >
+          MSME View
+        </Link>
       </div>
     </div>
   );

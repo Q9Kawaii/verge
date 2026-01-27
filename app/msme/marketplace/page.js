@@ -6,6 +6,8 @@ import { onAuthStateChanged } from "firebase/auth";
 import { collection, getDocs } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import Link from "next/link";
+import { addDoc } from "firebase/firestore";
+
 
 export default function MSMEMarketplace() {
   const router = useRouter();
@@ -42,6 +44,20 @@ export default function MSMEMarketplace() {
   }, []);
 
   if (loading) return <p>Loading marketplace...</p>;
+
+  const handleBuyEnergy = async (offer) => {
+  await addDoc(collection(db, "contracts"), {
+    msmeEmail: auth.currentUser.email,
+    anchorName: offer.anchorName,
+    energyMWh: offer.energyMWh,
+    price: offer.price,
+    duration: offer.duration,
+    createdAt: new Date(),
+  });
+
+  alert("Energy purchased successfully (simulated)");
+};
+
 
   return (
     <div className="space-y-6">
@@ -90,9 +106,7 @@ export default function MSMEMarketplace() {
             </div>
 
             <button
-              onClick={() =>
-                alert("Simulated purchase – no real transaction")
-              }
+              onClick={() => handleBuyEnergy(offer)}
               className="w-full mt-2 bg-black text-white py-2 rounded-md hover:bg-gray-800"
             >
               Buy Energy

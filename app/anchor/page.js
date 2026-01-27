@@ -36,12 +36,22 @@ export default function AnchorDashboard() {
         <div className="flex items-center justify-between">
   <h1 className="text-2xl font-bold">Anchor Buyer Dashboard</h1>
 
-  <Link
+<div className="flex gap-4">
+      <Link
     href="/anchor/excess-energy"
     className="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800"
   >
     Excess Energy Listings
   </Link>
+
+  <Link
+            href="/anchor/recs
+"
+            className="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800"
+            >
+            Recs
+    </Link>
+</div>
 </div>
 
       {/* Summary Cards */}
