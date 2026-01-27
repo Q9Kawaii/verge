@@ -14,8 +14,11 @@ export default function AnchorDashboard() {
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => {
       if (!u) {
-        router.push("/login");
-      } else {
+  setLoading(false);
+  router.replace("/login");
+  return;
+}
+ else {
         setUser(u);
         setLoading(false);
       }

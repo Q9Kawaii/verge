@@ -1,33 +1,31 @@
-import { Geist, Geist_Mono } from "next/font/google";
+"use client";
+
+import { useEffect, useState } from "react";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "@/lib/firebase";
+import LogoutButton from "@/components/LogoutButton";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-export const metadata = {
-  title: "VERGE",
-  description: "Virtual Energy & Renewable Green Exchange",
-};
-
 export default function RootLayout({ children }) {
+  const [loggedIn, setLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (user) => {
+      setLoggedIn(!!user);
+    });
+    return () => unsub();
+  }, []);
+
   return (
     <html lang="en">
       <body className="min-h-screen bg-gray-50 text-gray-900">
-        {/* Simple top bar */}
         <header className="w-full border-b bg-white">
-          <div className="max-w-7xl mx-auto px-4 py-3 font-semibold">
-            VERGE
+          <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+            <span className="font-semibold">VERGE</span>
+            {loggedIn && <LogoutButton />}
           </div>
         </header>
 
-        {/* Page content */}
         <main className="max-w-7xl mx-auto px-4 py-6">
           {children}
         </main>

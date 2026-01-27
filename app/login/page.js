@@ -1,24 +1,56 @@
 "use client";
 
-import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import {
+  GoogleAuthProvider,
+  signInWithPopup,
+  onAuthStateChanged,
+} from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
+import { auth, db } from "@/lib/firebase";
 
 export default function LoginPage() {
   const router = useRouter();
+  const [checking, setChecking] = useState(true);
+
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        setChecking(false);
+        return;
+      }
+
+      // Logged in → check if role exists
+      const snap = await getDoc(doc(db, "users", user.uid));
+
+      if (snap.exists()) {
+        const role = snap.data().role;
+        document.cookie = `role=${role}; path=/`;
+
+        if (role === "generator") router.replace("/generator");
+        if (role === "anchor") router.replace("/anchor");
+        if (role === "msme") router.replace("/msme");
+      } else {
+        router.replace("/onboarding");
+      }
+    });
+
+    return () => unsub();
+  }, [router]);
 
   const handleGoogleLogin = async () => {
     try {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
-
-      // After login → onboarding (role selection later)
-      router.push("/onboarding");
-    } catch (error) {
-      console.error("Login error:", error);
+      // redirect handled by onAuthStateChanged
+    } catch (err) {
       alert("Google sign-in failed");
+      console.error(err);
     }
   };
+
+  if (checking) return <p>Checking account...</p>;
 
   return (
     <div className="min-h-[60vh] flex items-center justify-center">
@@ -31,10 +63,6 @@ export default function LoginPage() {
         >
           Continue with Google
         </button>
-
-        <p className="text-sm text-gray-500">
-          No passwords. Secure Google authentication.
-        </p>
       </div>
     </div>
   );

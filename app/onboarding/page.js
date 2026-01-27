@@ -15,8 +15,11 @@ export default function OnboardingPage() {
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => {
       if (!u) {
-        router.push("/login");
-      } else {
+  setLoading(false);
+  router.replace("/login");
+  return;
+}
+ else {
         setUser(u);
         setLoading(false);
       }
@@ -37,11 +40,14 @@ export default function OnboardingPage() {
         role,
         createdAt: new Date(),
       });
+// Store role in cookie (for middleware)
+document.cookie = `role=${role}; path=/`;
 
-      // Redirect based on role
-      if (role === "generator") router.push("/generator");
-      if (role === "anchor") router.push("/anchor");
-      if (role === "msme") router.push("/msme");
+// Redirect based on role
+if (role === "generator") router.push("/generator");
+if (role === "anchor") router.push("/anchor");
+if (role === "msme") router.push("/msme");
+
     } catch (err) {
       console.error(err);
       alert("Failed to save role");
