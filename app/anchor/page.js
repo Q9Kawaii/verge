@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+
 
 export default function AnchorDashboard() {
   const router = useRouter();
@@ -31,7 +33,16 @@ export default function AnchorDashboard() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Anchor Buyer Dashboard</h1>
+        <div className="flex items-center justify-between">
+  <h1 className="text-2xl font-bold">Anchor Buyer Dashboard</h1>
+
+  <Link
+    href="/anchor/excess-energy"
+    className="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800"
+  >
+    Excess Energy Listings
+  </Link>
+</div>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
