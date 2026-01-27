@@ -5,12 +5,12 @@ import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
 
-export default function MSMEDashboard() {
+export default function GeneratorDashboard() {
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Auth check
+  // Basic auth check
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => {
       if (!u) {
@@ -28,56 +28,52 @@ export default function MSMEDashboard() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">MSME Dashboard</h1>
+      <h1 className="text-2xl font-bold">Generator Dashboard</h1>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-white p-4 rounded shadow">
-          <p className="text-sm text-gray-500">Energy Consumed</p>
-          <p className="text-xl font-semibold">4,200 MWh</p>
+          <p className="text-sm text-gray-500">Total Generation</p>
+          <p className="text-xl font-semibold">12,500 MWh</p>
         </div>
 
         <div className="bg-white p-4 rounded shadow">
-          <p className="text-sm text-gray-500">Avg. Energy Cost</p>
-          <p className="text-xl font-semibold">₹3.2 / kWh</p>
+          <p className="text-sm text-gray-500">RECs Issued</p>
+          <p className="text-xl font-semibold">12,500</p>
         </div>
 
         <div className="bg-white p-4 rounded shadow">
-          <p className="text-sm text-gray-500">Cost Savings</p>
-          <p className="text-xl font-semibold">₹18.5 Lakh</p>
+          <p className="text-sm text-gray-500">Active Offers</p>
+          <p className="text-xl font-semibold">3</p>
         </div>
       </div>
 
-      {/* Current Energy Contracts */}
+      {/* Projects Section */}
       <div className="bg-white p-6 rounded shadow">
-        <h2 className="text-lg font-semibold mb-2">Active Energy Contracts</h2>
-
-        <p className="text-sm text-gray-500 mb-4">
-          Energy supplied as brown power. Environmental benefits already claimed upstream.
-        </p>
+        <h2 className="text-lg font-semibold mb-4">Projects</h2>
 
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="border-b">
-              <th className="py-2">Supplier</th>
-              <th>Energy</th>
-              <th>Price</th>
-              <th>Type</th>
+              <th className="py-2">Project</th>
+              <th>Technology</th>
+              <th>Capacity</th>
+              <th>Status</th>
             </tr>
           </thead>
           <tbody>
             <tr className="border-b">
-              <td className="py-2">Anchor Buyer A</td>
-              <td>2,000 MWh</td>
-              <td>₹3.1 / kWh</td>
-              <td className="text-yellow-600 font-medium">Brown</td>
+              <td className="py-2">Solar Park A</td>
+              <td>Solar</td>
+              <td>50 MW</td>
+              <td className="text-green-600">Active</td>
             </tr>
 
             <tr>
-              <td className="py-2">Anchor Buyer B</td>
-              <td>2,200 MWh</td>
-              <td>₹3.3 / kWh</td>
-              <td className="text-yellow-600 font-medium">Brown</td>
+              <td className="py-2">Wind Farm B</td>
+              <td>Wind</td>
+              <td>30 MW</td>
+              <td className="text-green-600">Active</td>
             </tr>
           </tbody>
         </table>
