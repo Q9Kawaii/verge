@@ -1,13 +1,11 @@
-import React, { Component } from 'react'
+import React from 'react'
 
-export class page extends Component {
-  render() {
-    return (
-      <div>
-        
-      </div>
-    )
-  }
+function page() {
+  return (
+    <div>
+      
+    </div>
+  )
 }
 
 export default page
