@@ -3,13 +3,17 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { collection, addDoc, getDocs } from "firebase/firestore";
+import { auth, db } from "@/lib/firebase";
 import Link from "next/link";
 
 export default function AnchorExcessEnergyPage() {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
 
+  const [loading, setLoading] = useState(true);
+  const [listings, setListings] = useState([]);
+
+  // 🔐 Auth guard
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => {
       if (!u) {
@@ -19,47 +23,55 @@ export default function AnchorExcessEnergyPage() {
       }
       setLoading(false);
     });
-
     return () => unsub();
   }, [router]);
 
-  if (loading) return <p>Loading excess energy...</p>;
+  // 🔄 Fetch listings
+  useEffect(() => {
+    const fetchListings = async () => {
+      const snapshot = await getDocs(collection(db, "excess_energy"));
+      const data = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setListings(data);
+    };
 
-  // 🟤 Mock excess energy listings
-  const listings = [
-    {
-      id: "ex1",
-      energyMWh: 3000,
-      price: 3.1,
+    fetchListings();
+  }, []);
+
+  const handleAddListing = async () => {
+    await addDoc(collection(db, "excess_energy"), {
+      anchorName: "ABC Cement Ltd",
+      energyMWh: 2000,
+      price: 3.2,
       duration: "6 months",
-      status: "Listed",
-    },
-    {
-      id: "ex2",
-      energyMWh: 1500,
-      price: 3.3,
-      duration: "3 months",
-      status: "Listed",
-    },
-  ];
+      status: "listed",
+      createdAt: new Date(),
+    });
+
+    alert("Excess energy listed");
+    window.location.reload();
+  };
+
+  if (loading) return <p>Loading excess energy...</p>;
 
   return (
     <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Excess Energy Listings</h1>
 
-        <div className="flex items-center justify-between">
-  <h1 className="text-2xl font-bold">Excess Energy Listings</h1>
-
-  <Link
-    href="/anchor"
-    className="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800"
-  >
-    Anchor Buyer Dashboard
-  </Link>
-</div>
+        <Link
+          href="/anchor"
+          className="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800"
+        >
+          Anchor Buyer Dashboard
+        </Link>
+      </div>
 
       <p className="text-sm text-gray-600">
-        Energy listed here is <strong>brown power</strong>.  
-        Renewable attributes (RECs) have already been claimed and cannot be resold.
+        Energy listed here is <strong>brown power</strong>. Renewable attributes
+        (RECs) have already been claimed and cannot be resold.
       </p>
 
       <div className="bg-white p-6 rounded-lg shadow">
@@ -81,27 +93,18 @@ export default function AnchorExcessEnergyPage() {
                 <td className="py-2">{item.energyMWh}</td>
                 <td>{item.price}</td>
                 <td>{item.duration}</td>
-                <td className="text-yellow-600 font-medium">
-                  {item.status}
-                </td>
+                <td className="text-yellow-600 font-medium">{item.status}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
 
-      {/* Add new listing (simulation only) */}
       <div className="bg-white p-6 rounded-lg shadow space-y-4">
         <h2 className="text-lg font-semibold">Add New Listing</h2>
 
-        <p className="text-sm text-gray-500">
-          This is a simulated action for the prototype.
-        </p>
-
         <button
-          onClick={() =>
-            alert("Simulated listing created (Firestore coming next)")
-          }
+          onClick={handleAddListing}
           className="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800"
         >
           Add Excess Energy

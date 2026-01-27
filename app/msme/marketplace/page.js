@@ -3,15 +3,17 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { collection, getDocs } from "firebase/firestore";
+import { auth, db } from "@/lib/firebase";
 import Link from "next/link";
-
 
 export default function MSMEMarketplace() {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
 
-  // 🔐 Basic auth guard
+  const [loading, setLoading] = useState(true);
+  const [offers, setOffers] = useState([]);
+
+  // 🔐 Auth guard
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => {
       if (!u) {
@@ -25,43 +27,38 @@ export default function MSMEMarketplace() {
     return () => unsub();
   }, [router]);
 
-  if (loading) return <p>Loading marketplace...</p>;
+  // 🔄 Fetch offers
+  useEffect(() => {
+    const fetchOffers = async () => {
+      const snapshot = await getDocs(collection(db, "excess_energy"));
+      const data = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setOffers(data);
+    };
 
-  // 🟤 Mock brown energy offers
-  const offers = [
-    {
-      id: "offer1",
-      anchor: "ABC Cement Ltd",
-      energyMWh: 2000,
-      price: 3.1,
-      duration: "6 months",
-    },
-    {
-      id: "offer2",
-      anchor: "XYZ Steel Corp",
-      energyMWh: 1500,
-      price: 3.3,
-      duration: "3 months",
-    },
-  ];
+    fetchOffers();
+  }, []);
+
+  if (loading) return <p>Loading marketplace...</p>;
 
   return (
     <div className="space-y-6">
-
       <div className="flex items-center justify-between">
-  <h1 className="text-2xl font-bold">Brown Energy Marketplace</h1>
+        <h1 className="text-2xl font-bold">Brown Energy Marketplace</h1>
 
-  <Link
-    href="/msme"
-    className="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800"
-  >
-    MSME Dashboard
-  </Link>
-</div>
+        <Link
+          href="/msme"
+          className="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800"
+        >
+          MSME Dashboard
+        </Link>
+      </div>
 
       <p className="text-sm text-gray-600">
-        All energy listed here is <strong>brown power</strong>.
-        Environmental attributes (RECs) have already been claimed upstream.
+        All energy listed here is <strong>brown power</strong>. Environmental
+        attributes (RECs) have already been claimed upstream.
       </p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -72,7 +69,7 @@ export default function MSMEMarketplace() {
           >
             <div>
               <p className="text-sm text-gray-500">Supplier</p>
-              <p className="font-medium">{offer.anchor}</p>
+              <p className="font-medium">{offer.anchorName}</p>
             </div>
 
             <div className="flex justify-between">
@@ -93,7 +90,9 @@ export default function MSMEMarketplace() {
             </div>
 
             <button
-              onClick={() => alert("Simulated purchase – no real transaction")}
+              onClick={() =>
+                alert("Simulated purchase – no real transaction")
+              }
               className="w-full mt-2 bg-black text-white py-2 rounded-md hover:bg-gray-800"
             >
               Buy Energy
