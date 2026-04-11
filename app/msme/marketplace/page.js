@@ -3,113 +3,95 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged } from "firebase/auth";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, addDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
-import Link from "next/link";
-import { addDoc } from "firebase/firestore";
-
 
 export default function MSMEMarketplace() {
   const router = useRouter();
-
   const [loading, setLoading] = useState(true);
   const [offers, setOffers] = useState([]);
+  const [isBuying, setIsBuying] = useState(null); // Track which item is being bought
 
-  // 🔐 Auth guard
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => {
-      if (!u) {
-        setLoading(false);
-        router.replace("/login");
-        return;
-      }
-      setLoading(false);
+      if (!u) router.replace("/login");
+      else setLoading(false);
     });
-
     return () => unsub();
   }, [router]);
 
-  // 🔄 Fetch offers
   useEffect(() => {
     const fetchOffers = async () => {
       const snapshot = await getDocs(collection(db, "excess_energy"));
-      const data = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setOffers(data);
+      setOffers(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     };
-
     fetchOffers();
   }, []);
 
-  if (loading) return <p>Loading marketplace...</p>;
-
   const handleBuyEnergy = async (offer) => {
-  await addDoc(collection(db, "contracts"), {
-    msmeEmail: auth.currentUser.email,
-    anchorName: offer.anchorName,
-    energyMWh: offer.energyMWh,
-    price: offer.price,
-    duration: offer.duration,
-    createdAt: new Date(),
-  });
+    setIsBuying(offer.id);
+    try {
+      await addDoc(collection(db, "contracts"), {
+        msmeEmail: auth.currentUser.email,
+        anchorName: offer.anchorName,
+        energyMWh: offer.energyMWh,
+        price: offer.price,
+        duration: offer.duration,
+        createdAt: serverTimestamp(),
+      });
+      alert(`Success! Purchased ${offer.energyMWh} MWh from ${offer.anchorName}`);
+      router.push("/msme/contracts");
+    } catch (e) {
+      alert("Error processing purchase.");
+    } finally {
+      setIsBuying(null);
+    }
+  };
 
-  alert("Energy purchased successfully (simulated)");
-};
-
+  if (loading) return <div className="p-10 text-center font-bold text-violet-600">Accessing Market...</div>;
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Brown Energy Marketplace</h1>
-
-        <Link
-          href="/msme"
-          className="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800"
-        >
-          MSME Dashboard
-        </Link>
+    <div className="max-w-6xl mx-auto py-12 px-6 space-y-8 animate-in slide-in-from-bottom-4">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold">Brown Power Marketplace</h1>
+          <p className="text-gray-500 text-sm">Secondary listings of energy without environmental credits.</p>
+        </div>
+        <button onClick={() => router.back()} className="px-6 py-2 bg-white border rounded-xl font-bold text-sm">← Back</button>
       </div>
 
-      <p className="text-sm text-gray-600">
-        All energy listed here is <strong>brown power</strong>. Environmental
-        attributes (RECs) have already been claimed upstream.
-      </p>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {offers.map((offer) => (
-          <div
-            key={offer.id}
-            className="bg-white p-5 rounded-lg shadow space-y-3"
-          >
-            <div>
-              <p className="text-sm text-gray-500">Supplier</p>
-              <p className="font-medium">{offer.anchorName}</p>
-            </div>
-
-            <div className="flex justify-between">
+          <div key={offer.id} className="bg-white p-6 rounded-3xl border border-blue-100 shadow-sm hover:border-violet-300 transition-all flex flex-col justify-between">
+            <div className="space-y-4">
+              <div className="flex justify-between items-start">
+                <span className="px-3 py-1 bg-amber-50 text-amber-600 rounded-lg text-[10px] font-black uppercase tracking-widest">Available</span>
+                <p className="text-2xl font-black text-violet-600">₹{offer.price}<span className="text-xs font-normal text-gray-400">/kWh</span></p>
+              </div>
+              
               <div>
-                <p className="text-sm text-gray-500">Energy</p>
-                <p className="font-medium">{offer.energyMWh} MWh</p>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Supplier</p>
+                <p className="font-bold text-gray-800">{offer.anchorName}</p>
               </div>
 
-              <div>
-                <p className="text-sm text-gray-500">Price</p>
-                <p className="font-medium">₹{offer.price} / kWh</p>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase">Volume</p>
+                  <p className="font-bold">{offer.energyMWh} MWh</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase">Term</p>
+                  <p className="font-bold">{offer.duration}</p>
+                </div>
               </div>
-            </div>
-
-            <div>
-              <p className="text-sm text-gray-500">Contract Duration</p>
-              <p className="font-medium">{offer.duration}</p>
             </div>
 
             <button
               onClick={() => handleBuyEnergy(offer)}
-              className="w-full mt-2 bg-black text-white py-2 rounded-md hover:bg-gray-800"
+              disabled={isBuying === offer.id}
+              className="w-full mt-8 bg-gray-900 text-white py-4 rounded-2xl font-bold hover:bg-violet-700 transition-all active:scale-95 disabled:bg-gray-300"
             >
-              Buy Energy
+              {isBuying === offer.id ? "Processing..." : "Sign Energy Pact"}
             </button>
           </div>
         ))}

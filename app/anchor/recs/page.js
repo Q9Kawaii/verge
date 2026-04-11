@@ -2,122 +2,71 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { onAuthStateChanged } from "firebase/auth";
-import { collection, getDocs } from "firebase/firestore";
-import { auth, db } from "@/lib/firebase";
-import Link from "next/link";
+import { collection, getDocs, query, doc, updateDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
-export default function AnchorRECPage() {
+export default function AnchorRECs() {
   const router = useRouter();
-
-  const [loading, setLoading] = useState(true);
   const [recs, setRecs] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // 🔐 Auth guard
-  useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => {
-      if (!u) {
-        setLoading(false);
-        router.replace("/login");
-        return;
-      }
-      setLoading(false);
-    });
+  const fetchRECs = async () => {
+    const snapshot = await getDocs(collection(db, "recs"));
+    setRecs(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
+    setLoading(false);
+  };
 
-    return () => unsub();
-  }, [router]);
+  useEffect(() => { fetchRECs(); }, []);
 
-  // 🔄 Fetch RECs
-  useEffect(() => {
-    const fetchRECs = async () => {
-      const snapshot = await getDocs(collection(db, "recs"));
-      const data = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setRecs(data);
-    };
-
+  const handleRetire = async (id) => {
+    if (!confirm("Retiring this REC will permanently claim its environmental attributes. Continue?")) return;
+    await updateDoc(doc(db, "recs", id), { status: "retired" });
     fetchRECs();
-  }, []);
+  };
 
-  if (loading) return <p>Loading RECs...</p>;
-
-  const activeRECs = recs.filter((r) => r.status === "active");
-  const retiredRECs = recs.filter((r) => r.status === "retired");
+  if (loading) return <div className="p-10 text-center text-violet-600 font-bold">Synchronizing REC Ledger...</div>;
 
   return (
-    <div className="space-y-8">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Renewable Energy Certificates</h1>
-
-        <Link
-          href="/anchor"
-          className="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800"
-        >
-          Anchor Dashboard
-        </Link>
+    <div className="max-w-6xl mx-auto py-12 px-6 space-y-8">
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold">REC Inventory & Offsets</h1>
+        <button onClick={() => router.back()} className="px-6 py-2 bg-gray-100 rounded-xl font-bold text-sm">← Back</button>
       </div>
 
-      <p className="text-sm text-gray-600">
-        RECs represent the environmental attributes of renewable electricity.
-        Once retired, they cannot be transferred or resold.
-      </p>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {/* ACTIVE SECTION */}
+        <div className="space-y-4">
+          <h2 className="text-xs font-black text-emerald-600 uppercase tracking-widest flex items-center gap-2">
+            <span className="w-2 h-2 bg-emerald-600 rounded-full animate-pulse"></span> Available for Retirement
+          </h2>
+          <div className="space-y-3">
+            {recs.filter(r => r.status === 'active').map(r => (
+              <div key={r.id} className="bg-white p-6 rounded-[24px] border border-blue-50 shadow-sm flex justify-between items-center hover:border-violet-200 transition-all">
+                <div>
+                  <p className="text-lg font-bold text-gray-800">{r.energyMWh} MWh</p>
+                  <p className="text-[10px] text-gray-400 font-bold uppercase">{r.generator || "Solar Project"}</p>
+                </div>
+                <button onClick={() => handleRetire(r.id)} className="px-4 py-2 bg-violet-600 text-white text-[10px] font-black rounded-lg uppercase shadow-lg shadow-violet-100">Retire Now</button>
+              </div>
+            ))}
+          </div>
+        </div>
 
-      {/* Active RECs */}
-      <div className="bg-white p-6 rounded-lg shadow">
-        <h2 className="text-lg font-semibold mb-4">Active RECs</h2>
-
-        {activeRECs.length === 0 ? (
-          <p className="text-gray-500">No active RECs.</p>
-        ) : (
-          <table className="w-full border-collapse text-left">
-            <thead>
-              <tr className="border-b">
-                <th className="py-2">Generator</th>
-                <th>Energy (MWh)</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {activeRECs.map((r) => (
-                <tr key={r.id} className="border-b">
-                  <td className="py-2">{r.generator}</td>
-                  <td>{r.energyMWh}</td>
-                  <td className="text-green-600 font-medium">Active</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
-
-      {/* Retired RECs */}
-      <div className="bg-white p-6 rounded-lg shadow">
-        <h2 className="text-lg font-semibold mb-4">Retired RECs</h2>
-
-        {retiredRECs.length === 0 ? (
-          <p className="text-gray-500">No retired RECs.</p>
-        ) : (
-          <table className="w-full border-collapse text-left">
-            <thead>
-              <tr className="border-b">
-                <th className="py-2">Generator</th>
-                <th>Energy (MWh)</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {retiredRECs.map((r) => (
-                <tr key={r.id} className="border-b">
-                  <td className="py-2">{r.generator}</td>
-                  <td>{r.energyMWh}</td>
-                  <td className="text-gray-500 font-medium">Retired</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+        {/* RETIRED SECTION */}
+        <div className="space-y-4 opacity-70">
+          <h2 className="text-xs font-black text-gray-400 uppercase tracking-widest">Retired Pool (Legally Claimed)</h2>
+          <div className="space-y-3">
+            {recs.filter(r => r.status === 'retired').map(r => (
+              <div key={r.id} className="bg-gray-50 p-6 rounded-[24px] border border-gray-200 flex justify-between items-center grayscale">
+                <div>
+                  <p className="text-lg font-bold text-gray-400 line-through">{r.energyMWh} MWh</p>
+                  <p className="text-[10px] text-gray-400 font-bold uppercase italic">Offset Verified</p>
+                </div>
+                <span className="text-emerald-600 font-black text-[10px] uppercase">Claimed</span>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
