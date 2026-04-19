@@ -1,36 +1,154 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# VERGE — Virtual Energy & Renewable Green Exchange
 
-## Getting Started
+A unified digital platform integrating renewable energy procurement, financial risk management, and grid intelligence into a scalable marketplace.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Preview
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+![Landing Page](public/ReadmeImages/fig3-landing.png)
+![Generator Dashboard](public/ReadmeImages/fig4-generator.png)
+![Grid Intelligence](public/ReadmeImages/fig5-grid.png)
+![REC Management](public/ReadmeImages/fig6-rec.png)
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Overview
 
-## Learn More
+VERGE (Virtual Energy & Renewable Green Exchange) is designed to address the limitations of traditional renewable energy procurement, particularly for MSMEs.
 
-To learn more about Next.js, take a look at the following resources:
+Conventional models involve:
+- High capital investment  
+- Regulatory complexity  
+- Exposure to volatile electricity prices  
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+VERGE replaces these with a unified digital system that combines:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Virtual Power Purchase Agreements (VPPA)  
+- Electricity derivatives for price hedging  
+- Demand aggregation mechanisms  
+- Capacitive backup power markets  
+- Blockchain-based transparency  
+- AI-driven grid intelligence  
 
-## Deploy on Vercel
+The platform enables renewable procurement without infrastructure dependency while ensuring cost predictability and system stability.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Key Features
+
+### Unified Energy Marketplace
+- Connects generators, MSMEs, and anchor buyers  
+- Enables virtual renewable energy procurement  
+
+### Integrated Risk Management
+- Built-in derivatives for hedging price volatility  
+- Predictable energy costs  
+
+### Blockchain Transparency
+- Smart contract execution  
+- Immutable REC lifecycle tracking  
+
+### Grid Intelligence Module
+- Short-term demand forecasting  
+- Real-time risk indicators  
+
+### Capacitive Market Integration
+- Backup energy activation during supply variability  
+- Grid stability support  
+
+---
+
+## System Architecture
+
+![System Architecture](public/ReadmeImages/fig1-architecture.png)
+
+The platform follows a modular, multi-layered architecture:
+- Core business logic layer  
+- API and access control (RBAC)  
+- Data and analytics layer  
+- User interaction layer  
+
+This ensures scalability, security, and interoperability.
+
+---
+
+## Grid Intelligence Architecture
+
+![Grid Intelligence Architecture](public/ReadmeImages/fig2-grid-architecture.png)
+
+The Grid Intelligence module operates as a non-intrusive analytical layer that provides:
+- Probabilistic demand forecasting  
+- Grid risk indicators  
+- Congestion and stability analysis  
+
+It enhances decision-making without interfering with market execution.
+
+---
+
+## Platform Interfaces
+
+### Landing Page
+![Landing Page](public/ReadmeImages/fig3-landing.png)
+
+---
+
+### Generator Dashboard
+![Generator Dashboard](public/ReadmeImages/fig4-generator.png)
+
+- Tracks energy generation and contracts  
+- Displays REC availability  
+- Provides grid awareness  
+
+---
+
+### Grid Intelligence Dashboard
+![Grid Intelligence](public/ReadmeImages/fig5-grid.png)
+
+- Stability metrics  
+- Risk scores  
+- Real-time analytics  
+
+---
+
+### REC Management
+![REC Management](public/ReadmeImages/fig6-rec.png)
+
+- Certificate lifecycle tracking  
+- Transparent compliance system  
+
+---
+
+### MSME Dashboard
+![MSME Dashboard](public/ReadmeImages/fig7-msme.png)
+
+- Consumption tracking  
+- Cost optimization insights  
+
+---
+
+### Energy Marketplace
+![Marketplace](public/ReadmeImages/fig8-market.png)
+
+- Secondary energy trading  
+- Market-driven pricing  
+
+---
+
+### Anchor Dashboard
+![Anchor Dashboard](public/ReadmeImages/fig9-anchor.png)
+
+- Portfolio management  
+- Carbon offset tracking  
+
+---
+
+### VPPA Portfolio
+![VPPA Portfolio](public/ReadmeImages/fig10-vppa.png)
+
+- Contract tracking  
+- Strike price and volume visibility  
+
+---
+
+## Workflow
