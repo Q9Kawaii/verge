@@ -1,154 +1,199 @@
+<div align="center">
+
+<img src="./public/ReadmeImages/landing page.png" alt="VERGE Banner" width="100%"/>
+
 # VERGE — Virtual Energy & Renewable Green Exchange
 
-A unified digital platform integrating renewable energy procurement, financial risk management, and grid intelligence into a scalable marketplace.
+**A unified digital marketplace for renewable energy procurement, financial risk management, and grid intelligence**
 
----
+[![Next.js](https://img.shields.io/badge/Next.js-15-black?style=flat-square&logo=next.js)](https://nextjs.org/)
+[![JavaScript](https://img.shields.io/badge/JavaScript-ES2024-yellow?style=flat-square&logo=javascript)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
+[![Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=flat-square&logo=vercel)](https://verge-two.vercel.app)
 
-## Preview
+[**Live Demo →**](https://verge-two.vercel.app)
 
-![Landing Page](public/ReadmeImages/fig3-landing.png)
-![Generator Dashboard](public/ReadmeImages/fig4-generator.png)
-![Grid Intelligence](public/ReadmeImages/fig5-grid.png)
-![REC Management](public/ReadmeImages/fig6-rec.png)
+</div>
 
 ---
 
 ## Overview
 
-VERGE (Virtual Energy & Renewable Green Exchange) is designed to address the limitations of traditional renewable energy procurement, particularly for MSMEs.
+VERGE is a digital energy marketplace built to give MSMEs and large buyers access to renewable energy — without the complexity, capital requirements, or price risk of traditional procurement models.
 
-Conventional models involve:
-- High capital investment  
-- Regulatory complexity  
-- Exposure to volatile electricity prices  
-
-VERGE replaces these with a unified digital system that combines:
-
-- Virtual Power Purchase Agreements (VPPA)  
-- Electricity derivatives for price hedging  
-- Demand aggregation mechanisms  
-- Capacitive backup power markets  
-- Blockchain-based transparency  
-- AI-driven grid intelligence  
-
-The platform enables renewable procurement without infrastructure dependency while ensuring cost predictability and system stability.
+The platform brings together energy procurement, financial tools, and grid intelligence into one seamless system.
 
 ---
 
-## Key Features
-
-### Unified Energy Marketplace
-- Connects generators, MSMEs, and anchor buyers  
-- Enables virtual renewable energy procurement  
-
-### Integrated Risk Management
-- Built-in derivatives for hedging price volatility  
-- Predictable energy costs  
-
-### Blockchain Transparency
-- Smart contract execution  
-- Immutable REC lifecycle tracking  
-
-### Grid Intelligence Module
-- Short-term demand forecasting  
-- Real-time risk indicators  
-
-### Capacitive Market Integration
-- Backup energy activation during supply variability  
-- Grid stability support  
-
----
-
-## System Architecture
-
-![System Architecture](public/ReadmeImages/fig1-architecture.png)
-
-The platform follows a modular, multi-layered architecture:
-- Core business logic layer  
-- API and access control (RBAC)  
-- Data and analytics layer  
-- User interaction layer  
-
-This ensures scalability, security, and interoperability.
-
----
-
-## Grid Intelligence Architecture
-
-![Grid Intelligence Architecture](public/ReadmeImages/fig2-grid-architecture.png)
-
-The Grid Intelligence module operates as a non-intrusive analytical layer that provides:
-- Probabilistic demand forecasting  
-- Grid risk indicators  
-- Congestion and stability analysis  
-
-It enhances decision-making without interfering with market execution.
-
----
-
-## Platform Interfaces
+## Platform Screenshots
 
 ### Landing Page
-![Landing Page](public/ReadmeImages/fig3-landing.png)
+
+<div align="center">
+<img src="./public/ReadmeImages/landing page.png" width="85%"/>
+</div>
+
+---
+
+### Login
+
+<div align="center">
+<img src="./public/ReadmeImages/login page.png" width="85%"/>
+</div>
 
 ---
 
 ### Generator Dashboard
-![Generator Dashboard](public/ReadmeImages/fig4-generator.png)
 
-- Tracks energy generation and contracts  
-- Displays REC availability  
-- Provides grid awareness  
+<div align="center">
+<img src="./public/ReadmeImages/generatoe dashboard.png" width="85%"/>
+</div>
 
 ---
 
-### Grid Intelligence Dashboard
-![Grid Intelligence](public/ReadmeImages/fig5-grid.png)
+### Grid Intelligence
 
-- Stability metrics  
-- Risk scores  
-- Real-time analytics  
+<div align="center">
+<img src="./public/ReadmeImages/grid intelegence.png" width="85%"/>
+</div>
+
+---
+
+### Probabilistic Forecast
+
+<div align="center">
+<img src="./public/ReadmeImages/probabilistic forcast.png" width="85%"/>
+</div>
 
 ---
 
 ### REC Management
-![REC Management](public/ReadmeImages/fig6-rec.png)
 
-- Certificate lifecycle tracking  
-- Transparent compliance system  
+<div align="center">
+<img src="./public/ReadmeImages/rec management.png" width="85%"/>
+</div>
+
+---
+
+### REC Inventory & Offsets
+
+<div align="center">
+<img src="./public/ReadmeImages/rec inventory.png" width="85%"/>
+</div>
 
 ---
 
 ### MSME Dashboard
-![MSME Dashboard](public/ReadmeImages/fig7-msme.png)
 
-- Consumption tracking  
-- Cost optimization insights  
+<div align="center">
+<img src="./public/ReadmeImages/msme dashboard.png" width="85%"/>
+</div>
 
 ---
 
-### Energy Marketplace
-![Marketplace](public/ReadmeImages/fig8-market.png)
+### Secondary Energy Market
 
-- Secondary energy trading  
-- Market-driven pricing  
+<div align="center">
+<img src="./public/ReadmeImages/market place.png" width="85%"/>
+</div>
+
+<div align="center">
+<img src="./public/ReadmeImages/secondary enery marked .png" width="85%"/>
+</div>
 
 ---
 
 ### Anchor Dashboard
-![Anchor Dashboard](public/ReadmeImages/fig9-anchor.png)
 
-- Portfolio management  
-- Carbon offset tracking  
-
----
-
-### VPPA Portfolio
-![VPPA Portfolio](public/ReadmeImages/fig10-vppa.png)
-
-- Contract tracking  
-- Strike price and volume visibility  
+<div align="center">
+<img src="./public/ReadmeImages/anchor dashboards.png" width="85%"/>
+</div>
 
 ---
 
-## Workflow
+### VPPA Contracts
+
+<div align="center">
+<img src="./public/ReadmeImages/vppa contracts.png" width="85%"/>
+</div>
+
+<div align="center">
+<img src="./public/ReadmeImages/vpp contract ledger.png" width="85%"/>
+</div>
+
+---
+
+### My Contracts
+
+<div align="center">
+<img src="./public/ReadmeImages/My contracts.png" width="85%"/>
+</div>
+
+---
+
+### ESG Compliance
+
+<div align="center">
+<img src="./public/ReadmeImages/ecg compliance.png" width="85%"/>
+</div>
+
+---
+
+## Tech Stack
+
+| Area | Technology |
+|---|---|
+| **Framework** | Next.js 15 (App Router) |
+| **Language** | JavaScript |
+| **Styling** | Tailwind CSS |
+| **Deployment** | Vercel |
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 18+
+- npm or yarn
+
+### Installation
+
+```bash
+git clone https://github.com/Q9Kawaii/verge.git
+cd verge
+npm install
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+---
+
+## Research
+
+This platform is part of an ongoing research paper by:
+
+**Pranjal Kundu, Yash Dingar, Kanchana M**
+Department of Computing Technologies, SRM Institute of Science and Technology
+
+*Full paper details available upon publication.*
+
+---
+
+## Authors
+
+| Name | Role | Contact |
+|---|---|---|
+| **Pranjal Kundu** | Platform Development | pk5518@srmist.edu.in |
+| **Yash Dingar** | Platform Development | yashdingar17@gmail.com |
+| **Kanchana M** | Faculty Supervisor | kanchanm@srmist.edu.in |
+
+---
+
+<div align="center">
+
+Built at **SRM Institute of Science and Technology** · Department of Computing Technologies
+
+[Live Demo](https://verge-two.vercel.app) · [Report an Issue](https://github.com/Q9Kawaii/verge/issues)
+
+</div>
